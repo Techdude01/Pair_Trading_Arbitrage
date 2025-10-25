@@ -1,9 +1,18 @@
+"""Statistical calculation utilities."""
 import numpy as np
 import statsmodels.api as sm
 
 
 def calculate_half_life(spread):
-    """Calculate half-life of mean reversion using OU process."""
+    """
+    Calculate half-life of mean reversion using Ornstein-Uhlenbeck process.
+    
+    Args:
+        spread (pd.Series): Spread time series
+        
+    Returns:
+        float: Half-life in days (inf if no mean reversion detected)
+    """
     spread_clean = spread.dropna()
     spread_lag = spread_clean.shift(1).dropna()
     spread_diff = spread_clean.diff().dropna()
@@ -20,7 +29,17 @@ def calculate_half_life(spread):
 
 
 def calculate_rolling_correlation(price_1, price_2, window=30):
-    """Calculate rolling correlation of log returns between two price series."""
+    """
+    Calculate rolling correlation of log returns between two price series.
+    
+    Args:
+        price_1 (pd.Series): First price series
+        price_2 (pd.Series): Second price series
+        window (int): Rolling window size in days (default: 30)
+        
+    Returns:
+        pd.Series: Rolling correlation values
+    """
     log_returns_1 = np.log(price_1 / price_1.shift(1))
     log_returns_2 = np.log(price_2 / price_2.shift(1))
     return log_returns_1.rolling(window=window).corr(log_returns_2)

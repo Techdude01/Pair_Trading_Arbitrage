@@ -1,14 +1,21 @@
-import pickle
+"""Plotting utilities for visualization."""
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
+from utils.io import load_pairs
 from utils.spread import calculate_spread
 from utils.stats import calculate_rolling_correlation
 
 
 def plot_pair_analysis(df, pair_results):
-    """Create a 4-panel plot for cointegration analysis of a trading pair."""
+    """
+    Create a 4-panel plot for cointegration analysis of a trading pair.
+    
+    Args:
+        df (pd.DataFrame): DataFrame containing stock data with Date column
+        pair_results (dict): Dictionary containing pair analysis results
+    """
     ticker1, ticker2 = pair_results['Pair'].split('-')
     close_col1 = f"Close__{ticker1}"
     close_col2 = f"Close__{ticker2}"
@@ -50,10 +57,17 @@ def plot_pair_analysis(df, pair_results):
     plt.show()
 
 
-def create_pvalue_heatmap():
-    """Create and show a heatmap of cointegration p-values for all pairs."""
-    with open('cointegrated_pairs.pkl', 'rb') as f:
-        copairs = pickle.load(f)
+def create_pvalue_heatmap(pairs_file='cointegrated_pairs.pkl'):
+    """
+    Create and show a heatmap of cointegration p-values for all pairs.
+    
+    Args:
+        pairs_file (str): Path to pickle file containing cointegrated pairs
+        
+    Returns:
+        tuple: (pvalue_matrix, tickers) - p-value matrix and ticker list
+    """
+    copairs = load_pairs(pairs_file)
 
     tickers = set()
     for pair in copairs:

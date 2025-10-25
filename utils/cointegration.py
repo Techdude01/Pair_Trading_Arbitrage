@@ -6,12 +6,19 @@ from utils.preprocess import get_close_cols
 from utils.config import get_default_tickers, get_stock_data_path
 
 
-def engle_granger_test(series1, series2, significance=0.05, alpha=0.05):
+def engle_granger_test(series1, series2):
     """
     Perform Engle-Granger cointegration test on two price series.
-
+    
     Regression: log(series1) = alpha + beta * log(series2) + error
     The residuals are tested for stationarity using ADF test by caller.
+    
+    Args:
+        series1 (pd.Series): First price series
+        series2 (pd.Series): Second price series
+        
+    Returns:
+        statsmodels.regression.linear_model.RegressionResults: OLS regression results
     """
     log_series1 = np.log(series1)
     log_series2 = np.log(series2)
@@ -21,9 +28,16 @@ def engle_granger_test(series1, series2, significance=0.05, alpha=0.05):
     return results
 
 
-def find_cointegrated_pairs(significance=0.05, alpha=0.05, save_top_n=5):
+def find_cointegrated_pairs(significance=0.05, save_top_n=5):
     """
     Find cointegrated stock pairs using Engle-Granger method and save top N.
+    
+    Args:
+        significance (float): Significance level for ADF test (default: 0.05)
+        save_top_n (int): Number of top pairs to save (default: 5)
+        
+    Returns:
+        list: List of cointegrated pair dictionaries
     """
     file_path = get_stock_data_path()
     df = load_data(file_path)

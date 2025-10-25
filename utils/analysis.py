@@ -1,20 +1,27 @@
-import pickle
+"""Analysis utilities for pair statistics and selection."""
 import pandas as pd
-from utils.io import load_data
+from utils.io import load_data, load_pairs
 from utils.preprocess import get_close_cols
 from utils.spread import calculate_spread
 from utils.stats import calculate_half_life, calculate_rolling_correlation
-from utils.config import get_stock_data_path
+from utils.config import get_stock_data_path, get_default_criteria
 
 
-def run_analysis():
-    """Analyze all cointegrated pairs and print summary statistics."""
+def run_analysis(pairs_file='cointegrated_pairs.pkl'):
+    """
+    Analyze all cointegrated pairs and print summary statistics.
+    
+    Args:
+        pairs_file (str): Path to pickle file containing cointegrated pairs
+        
+    Returns:
+        list: List of pair analysis result dictionaries
+    """
     file_path = get_stock_data_path()
     df = load_data(file_path)
     df = get_close_cols(df)
 
-    with open('cointegrated_pairs.pkl', 'rb') as f:
-        copairs = pickle.load(f)
+    copairs = load_pairs(pairs_file)
 
     pair_results = []
     for pair in copairs:
@@ -54,23 +61,21 @@ def run_analysis():
     return pair_results
 
 
-def select_good_pairs(criteria=None):
-    """Select pairs that meet trading criteria for statistical arbitrage."""
+def select_good_pairs(criteria=None, pairs_file='cointegrated_pairs.pkl'):
+    """
+    Select pairs that meet trading criteria for statistical arbitrage.
+    
+    Args:
+        criteria (dict, optional): Custom criteria thresholds. If None, uses defaults.
+        pairs_file (str): Path to pickle file containing cointegrated pairs
+        
+    Returns:
+        tuple: (good_pairs, all_pair_results) - filtered and all results
+    """
     if criteria is None:
-        criteria = {
-            'max_pvalue': 0.05,
-            'min_adf_statistic': -2.86,
-            'min_half_life': 1,
-            'max_half_life': 30,
-            'max_spread_mean_abs': 0.1,
-            'min_spread_std': 0.001,
-            'max_spread_std': 0.5,
-            'min_r_squared': 0.5,
-            'min_correlation': 0.3,
-            'max_correlation': 0.95,
-        }
+        criteria = get_default_criteria()
 
-    pair_results = run_analysis()
+    pair_results = run_analysis(pairs_file)
     good_pairs = []
 
     if not pair_results or not isinstance(pair_results, list):

@@ -1,9 +1,21 @@
+"""I/O utilities for loading and saving data."""
 import pickle
 import pandas as pd
 
 
 def load_data(file_path):
-    """Load stock data from parquet or CSV file."""
+    """
+    Load stock data from parquet or CSV file.
+    
+    Args:
+        file_path (str): Path to data file
+        
+    Returns:
+        pd.DataFrame: Loaded stock data
+        
+    Raises:
+        ValueError: If file type is not supported
+    """
     if file_path.endswith('.parquet'):
         return pd.read_parquet(file_path, engine='fastparquet')
     if file_path.endswith('.csv'):
@@ -11,8 +23,29 @@ def load_data(file_path):
     raise ValueError(f'Unsupported file type: {file_path}')
 
 
+def load_pairs(filename='cointegrated_pairs.pkl'):
+    """
+    Load cointegrated pairs from pickle file.
+    
+    Args:
+        filename (str): Path to pickle file
+        
+    Returns:
+        list: List of cointegrated pair dictionaries
+    """
+    with open(filename, 'rb') as f:
+        return pickle.load(f)
+
+
 def save_top_pairs(pairs, top_n=5, filename='cointegrated_pairs.pkl'):
-    """Save top N cointegrated pairs to a pickle file."""
+    """
+    Save top N cointegrated pairs to a pickle file.
+    
+    Args:
+        pairs (list): List of pair dictionaries
+        top_n (int): Number of top pairs to save
+        filename (str): Output pickle file path
+    """
     if not pairs:
         print('No pairs to save.')
         return
