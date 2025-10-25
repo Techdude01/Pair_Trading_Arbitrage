@@ -34,7 +34,7 @@ def engle_granger_test(series1, series2):
     return results
 
 
-def find_cointegrated_pairs(significance=0.05, save_top_n=5):
+def find_cointegrated_pairs(significance=0.05, save_top_n=10):
     """
     Find cointegrated stock pairs using Engle-Granger method and save top N.
     
@@ -72,10 +72,10 @@ def find_cointegrated_pairs(significance=0.05, save_top_n=5):
                 })
 
     copairs.sort(key=lambda x: x['pvalue'])
-    print("Top 5 cointegrated pairs:")
+    print(f"Top {min(save_top_n, len(copairs))} cointegrated pairs:")
     print(f"{'Pair':<15} {'P-value':<12} {'ADF Stat':<10} {'Hedge Ratio':<12} {'R²':<8}")
     print("=" * 70)
-    for i in range(min(5, len(copairs))):
+    for i in range(min(save_top_n, len(copairs))):
         pair = copairs[i]
         t1, t2 = pair['tickers']
         print(f"{t1}-{t2:<12} {pair['pvalue']:<12.6f} {pair['adf_statistic']:<10.4f} "

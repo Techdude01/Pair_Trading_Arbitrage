@@ -37,7 +37,7 @@ def load_pairs(filename='cointegrated_pairs.pkl'):
         return pickle.load(f)
 
 
-def save_top_pairs(pairs, top_n=5, filename='cointegrated_pairs.pkl'):
+def save_top_pairs(pairs, top_n=10, filename='cointegrated_pairs.pkl'):
     """
     Save top N cointegrated pairs to a pickle file.
     
