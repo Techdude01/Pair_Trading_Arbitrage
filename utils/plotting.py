@@ -29,22 +29,27 @@ def plot_pair_analysis(df, pair_results):
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
     fig.suptitle(f'{ticker1} vs {ticker2} Cointegration Analysis')
 
+    # Plot 1: Price comparison
+    # normalize the prices to the first day
     axes[0,0].plot(df['Date'], df[close_col1]/df[close_col1].iloc[0], label=ticker1, alpha=0.7)
     axes[0,0].plot(df['Date'], df[close_col2]/df[close_col2].iloc[0], label=ticker2, alpha=0.7)
     axes[0,0].set_title('Price Comparison')
     axes[0,0].legend()
     axes[0,0].grid(True)
 
+    # Plot 2: Spread
     axes[0,1].plot(df['Date'], spread, color='red', alpha=0.7)
     axes[0,1].axhline(y=spread.mean(), color='black', linestyle='--', alpha=0.5)
     axes[0,1].set_title(f'Spread (Half-life: {half_life:.1f} days)')
     axes[0,1].grid(True)
 
+    # Plot 3: Rolling correlation
     axes[1,0].plot(df['Date'], rolling_correlation, color='green', alpha=0.7)
     axes[1,0].axhline(y=0.5, color='black', linestyle='--', alpha=0.5)
     axes[1,0].set_title('Rolling Correlation (30-day)')
     axes[1,0].grid(True)
 
+    # Plot 4: Spread histogram
     axes[1,1].hist(spread.dropna(), bins=30, alpha=0.7, color='purple')
     axes[1,1].set_title('Spread Distribution')
     axes[1,1].grid(True)
@@ -76,41 +81,54 @@ def create_pvalue_heatmap(pairs_file='cointegrated_pairs.pkl'):
         tickers.add(ticker2)
 
     tickers = sorted(list(tickers))
+    
+    # Create a matrix for p-values
     n = len(tickers)
-    pvalue_matrix = np.ones((n, n))
-
+    pvalue_matrix = np.ones((n, n))  # Initialize with 1.0 (no cointegration)
+    
+    # Fill the matrix with p-values
     for pair in copairs:
         pvalue = pair['pvalue']
         ticker1, ticker2 = pair['tickers']
         idx1 = tickers.index(ticker1)
         idx2 = tickers.index(ticker2)
+        # Matrix is symmetric
         pvalue_matrix[idx1, idx2] = pvalue
         pvalue_matrix[idx2, idx1] = pvalue
-
+    
+    # Set diagonal to NaN (a ticker with itself)
     np.fill_diagonal(pvalue_matrix, np.nan)
-
+    
+    # Create the heatmap
     plt.figure(figsize=(14, 12))
+    
+    # Use a diverging colormap where lower p-values are darker
+    # Mask values that are 1.0 (pairs not tested)
     mask = pvalue_matrix == 1.0
+    
     sns.heatmap(
         pvalue_matrix,
         annot=True,
         fmt='.4f',
-        cmap='RdYlGn_r',
+        cmap='RdYlGn_r',  # Red (low p-value) to Green (high p-value)
         xticklabels=tickers,
         yticklabels=tickers,
         cbar_kws={'label': 'P-value'},
         vmin=0,
-        vmax=0.1,
+        vmax=0.1,  # Focus on significant range
         linewidths=0.5,
         linecolor='gray',
         mask=mask
     )
-
-    plt.title('Cointegration P-value Heatmap\n(Lower p-values = Stronger cointegration)', fontsize=16, pad=20)
+    
+    plt.title('Cointegration P-value Heatmap\n(Lower p-values = Stronger cointegration)', 
+              fontsize=16, pad=20)
     plt.xlabel('Ticker', fontsize=12)
     plt.ylabel('Ticker', fontsize=12)
+    
     plt.tight_layout()
-
+    
+    # Print summary statistics
     valid_pvalues = pvalue_matrix[~np.isnan(pvalue_matrix) & (pvalue_matrix < 1.0)]
     print(f"\nP-value Statistics:")
     print(f"Total pairs tested: {len(copairs)}")
