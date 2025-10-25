@@ -1,0 +1,28 @@
+import numpy as np
+import statsmodels.api as sm
+
+
+def calculate_half_life(spread):
+    """Calculate half-life of mean reversion using OU process."""
+    spread_clean = spread.dropna()
+    spread_lag = spread_clean.shift(1).dropna()
+    spread_diff = spread_clean.diff().dropna()
+    spread_lag = spread_lag.iloc[1:]
+    spread_diff = spread_diff.iloc[1:]
+    assert len(spread_lag) == len(spread_diff), "Spread lag and spread diff are not the same length"
+    X = sm.add_constant(spread_lag)
+    model = sm.OLS(spread_diff, X)
+    results = model.fit()
+    beta = results.params.iloc[1]
+    if beta >= 0:
+        return float('inf')
+    return -np.log(2) / beta
+
+
+def calculate_rolling_correlation(price_1, price_2, window=30):
+    """Calculate rolling correlation of log returns between two price series."""
+    log_returns_1 = np.log(price_1 / price_1.shift(1))
+    log_returns_2 = np.log(price_2 / price_2.shift(1))
+    return log_returns_1.rolling(window=window).corr(log_returns_2)
+
+
