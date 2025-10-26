@@ -1,3 +1,11 @@
 *.csv 
 *.parquet
 .env
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
